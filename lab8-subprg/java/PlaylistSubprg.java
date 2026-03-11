@@ -82,13 +82,19 @@ public class PlaylistSubprg {
             this(items, 0);
         }
 
-        public Item getNextItem() throws EndOfPlaylist { //Extension Task 3b: Replace with a pure procedure and a pure function
-            if (index >= items.size()) {
+        public Item getCurrentItem() {
+
+            return items.get(index);
+        }
+
+        public void shiftToNextItem() throws EndOfPlaylist {
+
+            if (index+1 >= items.size()) {
+
                 throw new EndOfPlaylist();
             }
-            Item result = items.get(index);
+
             index++;
-            return result;
         }
 
         public class EndOfPlaylist extends Exception {
@@ -112,7 +118,12 @@ public class PlaylistSubprg {
     public static float getPlaylistLengthTwoItems(List<Item> playlist) throws PlaylistProgress.EndOfPlaylist {
         PlaylistProgress progress = new PlaylistProgress(playlist);
         // TASK 3a: Is the expression below referentially transparent?
-        return twice(progress.getNextItem().length_secs);
+
+        float result = 0;
+        result += progress.getCurrentItem().length_secs;
+        progress.shiftToNextItem();
+        result += progress.getCurrentItem().length_secs;
+        return result;
     }
 
     private static float twice(float x) {
@@ -167,23 +178,28 @@ public class PlaylistSubprg {
      * @param playlist
      * @param result
      */
-    public static void getPlaylistLength_CopyInCopyOutPassing(List<Item> playlist, FloatHolder result,
-            FloatHolder resultNoAds) {
+    public static void getPlaylistLength_CopyInCopyOutPassing(List<Item> playlist, FloatHolder result,FloatHolder resultNoAds) {
         // TASK 2b: complete this method, simulating copy-in/copy-out parameter passing
 
+        float tempResult = result.x;
+        float tempResultNoAds = resultNoAds.x;
 
+        // updating the local vairables
+        for (Item item : playlist) {
+            
+            tempResult = tempResult + item.length_secs;
+            if (!(item instanceof Advert)) {
 
+                tempResultNoAds = tempResultNoAds + item.length_secs;
+            }
+        }
 
-
-
-
-
-
-
+        // final values back to the original objects
+        result.x = tempResult;
+        resultNoAds.x = tempResultNoAds;
     }
 
     public static void main(String[] args)
-        throws PlaylistProgress.EndOfPlaylist 
         {
         // TASK 1b: remove the above throws declaration, and handle the exception properly in the loop at line 234
 
@@ -232,9 +248,22 @@ public class PlaylistSubprg {
 
         PlaylistProgress progress = new PlaylistProgress(playlist1);
         while (true) {        //TASK 1c: Modify this loop to handle the EndOfPlaylist exception
-            float remainingLength = progress.getRemainingLength();
-            System.out.printf("Next item = %s \n", progress.getNextItem());
-            System.out.printf("  remaining play time = %.2f \n", remainingLength);
+            try {
+                
+                float remainingLength = progress.getRemainingLength();
+                System.out.printf("Next item = %s \n", progress.getCurrentItem());
+                System.out.printf("  remaining play time = %.2f \n", remainingLength);
+
+                // advancing index for the next loop iteration
+                progress.shiftToNextItem();
+            }
+            catch (PlaylistProgress.EndOfPlaylist e) {
+                break; // exits the loop when playlist is finished
+            }
+            
         }
     }
 }
+
+
+                // Edited by Tazdik Wazi Orshan_240350255 
